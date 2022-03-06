@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -60,7 +63,44 @@ namespace EntityFrameworkCore.Vfp.Query.Internal.Rewritters {
         public static ColumnExpression CreateColumnExpression(IProperty property, IColumnBase column, TableExpressionBase table, bool nullable) {
             var paramValues = new object[] { property, column, table, nullable };
 
-            return (ColumnExpression)ColumnExpressionConstuctorInfo.Invoke(paramValues);
+            return new MyColumnExpression(property, column, table, nullable);
+        }
+
+        internal class MyColumnExpression : ColumnExpression
+        {
+            public static Type UnwrapNullableType(Type type)
+                => Nullable.GetUnderlyingType(type) ?? type;
+            internal MyColumnExpression(IProperty property, IColumnBase column, TableExpressionBase table, bool nullable)
+                : this(
+                    column.Name,
+                    table,
+                    UnwrapNullableType(property.ClrType),
+                    column.PropertyMappings.First(m => m.Property == property).TypeMapping,
+                    nullable || column.IsNullable)
+            {
+            }
+
+            private MyColumnExpression(string name, TableExpressionBase table, Type type, RelationalTypeMapping typeMapping, bool nullable)
+                : base(type, typeMapping)
+            {
+                Name = name;
+                Table = table;
+                IsNullable = nullable;
+            }
+
+            public override string Name { get; }
+
+            public override TableExpressionBase Table { get; }
+
+            public override bool IsNullable { get; }
+
+            public override string TableAlias => Table.Alias;
+
+            protected override Expression VisitChildren(ExpressionVisitor visitor)
+                => this;
+
+            public override ColumnExpression MakeNullable()
+                => new MyColumnExpression(Name, Table, Type, TypeMapping, true);
         }
     }
 }
