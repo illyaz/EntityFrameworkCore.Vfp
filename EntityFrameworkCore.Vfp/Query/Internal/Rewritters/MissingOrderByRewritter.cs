@@ -35,7 +35,7 @@ namespace EntityFrameworkCore.Vfp.Query.Internal.Rewritters {
 
                     foreach(var property in entityType
                         .GetAllBaseTypes().Concat(entityType.GetDerivedTypesInclusive())
-                        .SelectMany(Microsoft.EntityFrameworkCore.EntityTypeExtensions.GetDeclaredProperties)) {
+                        .SelectMany(e => e.GetDeclaredProperties())) {
 
                         var columnExpression = CreateColumnExpression(property, table.FindColumn(property), tableExpression, false);
 

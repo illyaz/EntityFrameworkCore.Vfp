@@ -16,7 +16,7 @@ namespace EntityFrameworkCore.Vfp.Update.Internal {
 
         public override ResultSetMapping AppendInsertOperation(
             StringBuilder commandStringBuilder,
-            ModificationCommand command,
+            IReadOnlyModificationCommand command,
             int commandPosition
         ) {
             commandStringBuilder.ThrowIfNull(nameof(commandStringBuilder));
@@ -43,8 +43,8 @@ namespace EntityFrameworkCore.Vfp.Update.Internal {
             [NotNull] StringBuilder commandStringBuilder,
             [NotNull] string name,
             [AllowNull] string schema,
-            [NotNull] IReadOnlyList<ColumnModification> readOperations,
-            [NotNull] IReadOnlyList<ColumnModification> conditionOperations
+            [NotNull] IReadOnlyList<IColumnModification> readOperations,
+            [NotNull] IReadOnlyList<IColumnModification> conditionOperations
         ) {
 
             AppendSelectCommandHeader(commandStringBuilder, readOperations);
@@ -58,7 +58,7 @@ namespace EntityFrameworkCore.Vfp.Update.Internal {
 
         protected override void AppendWhereAffectedClause(
             [NotNull] StringBuilder commandStringBuilder,
-            [NotNull] IReadOnlyList<ColumnModification> operations
+            [NotNull] IReadOnlyList<IColumnModification> operations
         ) {
             commandStringBuilder.ThrowIfNull(nameof(commandStringBuilder));
             operations.ThrowIfNull(nameof(operations));
@@ -88,7 +88,7 @@ namespace EntityFrameworkCore.Vfp.Update.Internal {
 
         protected override void AppendIdentityWhereCondition(
             [NotNull] StringBuilder commandStringBuilder,
-            [NotNull] ColumnModification columnModification
+            [NotNull] IColumnModification columnModification
         ) {
             commandStringBuilder
                 .Append(columnModification.ColumnName)

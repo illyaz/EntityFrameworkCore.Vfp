@@ -17,13 +17,13 @@ namespace EntityFrameworkCore.Vfp.Update.Internal {
             int? maxBatchSize
         ) : base(dependencies) {
             if(maxBatchSize.HasValue && maxBatchSize.Value <= 0) {
-                throw new ArgumentOutOfRangeException(nameof(maxBatchSize), RelationalStrings.InvalidMaxBatchSize);
+                throw new ArgumentOutOfRangeException(nameof(maxBatchSize), RelationalStrings.InvalidMaxBatchSize(maxBatchSize));
             }
 
             _maxBatchSize = Math.Min(maxBatchSize ?? int.MaxValue, MaxRowCount);
         }
 
-        protected override bool CanAddCommand([NotNull] ModificationCommand modificationCommand) {
+        protected override bool CanAddCommand([NotNull] IReadOnlyModificationCommand modificationCommand) {
             if(ModificationCommands.Count >= _maxBatchSize) {
                 return false;
             }
@@ -55,7 +55,7 @@ namespace EntityFrameworkCore.Vfp.Update.Internal {
 
         protected override int GetParameterCount() => _parameterCount;
 
-        private static int CountParameters(ModificationCommand modificationCommand) {
+        private static int CountParameters(IReadOnlyModificationCommand modificationCommand) {
             var parameterCount = 0;
 
             for(var columnIndex = 0; columnIndex < modificationCommand.ColumnModifications.Count; columnIndex++) {
